@@ -2,19 +2,27 @@
   "name": "epic-stack-turborepo",
   "private": true,
   "scripts": {
+    "prebuild": "turbo run prebuild",
     "build": "turbo build",
     "dev": "turbo dev",
+    "db:seed": "turbo run db:seed --no-cache",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test:setup-ci": "turbo run test:setup-ci",
+    "test": "turbo run test",
+    "test:e2e:setup-ci": "turbo run test:e2e:setup-ci",
+    "test:e2e:run": "turbo run test:e2e:run",
+    "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.11",
     "turbo": "latest"
   },
   "packageManager": "pnpm@8.9.0",
   "engines": {
-    "node": ">=18"
+    "node": "20"
   }
 }

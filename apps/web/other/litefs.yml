@@ -1,13 +1,26 @@
-# Documented example: https://github.com/superfly/litefs/blob/dec5a7353292068b830001bd2df4830e646f6a2f/cmd/litefs/etc/litefs.yml
+# Documented example: https://github.com/superfly/litefs-example/blob/c7b75607017f8498b8ddfac43a6153df415380f9/fly-io-config/etc/litefs.yml
+
+# The fuse section describes settings for the FUSE file system. This file system
+# is used as a thin layer between the SQLite client in your application and the
+# storage on disk. It intercepts disk writes to determine transaction boundaries
+# so that those transactions can be saved and shipped to replicas.
 fuse:
-  # Required. This is the mount directory that applications will
-  # use to access their SQLite databases.
   dir: '${LITEFS_DIR}'
 
+# The data section describes settings for the internal LiteFS storage. We'll
+# mount a volume to the data directory so it can be persisted across restarts.
+# However, this data should not be accessed directly by the user application.
 data:
-  # Path to internal data storage.
-  dir: '/data/litefs'
+  dir: '/var/lib/litefs'
 
+# This flag ensure that LiteFS continues to run if there is an issue on starup.
+# It makes it easy to ssh in and debug any issues you might be having rather
+# than continually restarting on initialization failure.
+exit-on-error: false
+
+# This section defines settings for the option HTTP proxy.
+# This proxy can handle primary forwarding & replica consistency
+# for applications that use a single SQLite database
 proxy:
   # matches the internal_port in fly.toml
   addr: ':${INTERNAL_PORT}'
@@ -22,16 +35,21 @@ lease:
   type: 'consul'
   candidate: ${FLY_REGION == PRIMARY_REGION}
   promote: true
-  advertise-url: 'http://${HOSTNAME}.vm.${FLY_APP_NAME}.internal:20202'
+  # The API URL that other nodes will use to connect to this node.
+  advertise-url: 'http://${FLY_ALLOC_ID}.vm.${FLY_APP_NAME}.internal:20202'
 
   consul:
     url: '${FLY_CONSUL_URL}'
     key: 'epic-stack-litefs/${FLY_APP_NAME}'
 
+# This section defines a list of commands to run after LiteFS has connected
+# and sync'd with the cluster. You can run multiple commands but LiteFS expects
+# the last command to be long-running (e.g. an application server). When the
+# last command exits, LiteFS is shut down.
 exec:
-  - cmd: node ./other/setup-swap.js
+  - cmd: node ./apps/web/other/setup-swap.js
 
-  - cmd: npx prisma migrate deploy
+  - cmd: npx prisma migrate deploy --schema ./apps/web/prisma/schema.prisma
     if-candidate: true
 
   # Set the journal mode for the database to WAL. This reduces concurrency deadlock issues
@@ -42,4 +60,4 @@ exec:
   - cmd: sqlite3 $CACHE_DATABASE_PATH "PRAGMA journal_mode = WAL;"
     if-candidate: true
 
-  - cmd: npm start
+  - cmd: npm start --prefix apps/web

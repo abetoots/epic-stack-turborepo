@@ -1,0 +1,370 @@
+name: 🚀 Deploy
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - staging
+  pull_request: {}
+
+# Ensure that only a single job or workflow using the same concurrency group will run at a time
+# This negates the need for styfle/cancel-workflow-action
+concurrency:
+  # Ensures that we process concurrently by branch using `github.ref` as the key
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # If a run is in progress for a specific branch, cancel the current run and start a new run
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  # If you want to reuse or share data between jobs/workflows,
+  # there are two ways to do this:
+  # 1. Use the cache action
+  # 2. Use upload/download artifact actions to pass the build artifacts between jobs
+  # Read: https://levelup.gitconnected.com/github-actions-how-to-share-data-between-jobs-fc1547defc3e
+  # Github doc: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#comparing-artifacts-and-dependency-caching
+
+  # If you only need to cache dependencies for a package manager,
+  # use their respective `actions/setup-*` actions. See the cache example with actions/setup-node@v3 below.
+  # See: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#comparing-artifacts-and-dependency-caching
+  # See: https://github.com/actions/setup-node?tab=readme-ov-file#caching-global-packages-data
+
+  validate-web:
+    name: ⬣ ESLint & ʦ TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install pnpm package manager
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+        #  https://github.com/pnpm/action-setup#use-cache-to-reduce-installation-time
+      - uses: actions/cache@v3
+        name: ⚡️ Cache pnpm store
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📥 Download deps
+        run: pnpm install --ignore-scripts --prefer-offline
+
+      - name: 🖼 Build
+        run: pnpm run build
+
+      - name: 🔬 Lint and ʦ Typecheck
+        #   https://stackoverflow.com/questions/3004811/how-do-you-run-multiple-programs-in-parallel-from-a-bash-script
+        run:
+          (trap 'kill 0' SIGINT; pnpm run lint --filter web & pnpm run typecheck
+          --filter web & wait)
+
+  test-web:
+    name: ⚡ Tests (Integration/Unit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm package manager
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: ⚡️ Cache pnpm store
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📥 Download deps
+        run: pnpm install --prefer-offline
+
+      - name: 🏄 Copy test env vars
+        run: cp apps/web/.env.example apps/web/.env
+
+      - name: 🛠 Setup test env (e.g. setup database, codegen)
+        run: pnpm run test:setup-ci --filter web
+
+      - name: 🖼 Build
+        run: pnpm run build
+
+      - name: ⚡ Run unit tests
+        run: pnpm run test
+
+  e2e-test-web:
+    name: 🎭 End to end testing for our web app
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🏄 Copy test env vars
+        run: cp ./apps/web/.env.example ./apps/web/.env
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm package manager
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: ⚡️ Cache pnpm store
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📥 Download deps
+        run: pnpm install --prefer-offline
+
+      - name: 🛠 Setup test env (e.g. setup database, codegen, install browsers)
+        run: pnpm run test:e2e:setup-ci --filter web
+
+      - name: 🏦 Cache Database
+        id: db-cache
+        uses: actions/cache@v3
+        with:
+          path: apps/web/prisma/data.db
+          key:
+            db-cache-schema_${{ hashFiles('./apps/web/prisma/schema.prisma')
+            }}-migrations_${{
+            hashFiles('./apps/web/prisma/migrations/*/migration.sql') }}
+
+        # Seeds the database if the cache was a miss
+      - name: 🌱 Seed Database
+        if: steps.db-cache.outputs.cache-hit != 'true'
+        run: pnpm run db:seed --filter web
+        env:
+          MINIMAL_SEED: true
+
+      - name: 🏗 Build
+        run: pnpm run build
+
+      - name: 🎭 Playwright tests
+        run: pnpm run test:e2e:run --filter web
+
+      - name: 📊 Upload report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  build-web:
+    name: 🐳 Build
+    # only build/deploy main and staging branch on pushes
+    if:
+      ${{ (github.ref == 'refs/heads/main' || github.ref ==
+      'refs/heads/staging') && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm package manager
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: ⚡️ Cache pnpm store
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📥 Download deps
+        run: pnpm install --prefer-offline
+
+      - name: 👀 Read app name
+        uses: SebRollen/toml-action@v1.0.2
+        id: read_toml
+        with:
+          file: 'apps/web/fly.toml'
+          field: 'app'
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Setup cache
+      - name: ⚡️ Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: 🔑 Fly Registry Auth
+        uses: docker/login-action@v3
+        with:
+          registry: registry.fly.io
+          username: x
+          password: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: 🐳 Docker build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/other/Dockerfile
+          push: true
+          tags:
+            registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
+            github.ref_name }}-${{ github.sha }}
+          build-args: |
+            COMMIT_SHA=${{ github.sha }}
+            STORE_PATH=${{ env.STORE_PATH }}
+            PROJECT=web
+          secrets: |
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+            SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      # This ugly bit is necessary if you don't want your cache to grow forever
+      # till it hits GitHub's limit of 5GB.
+      # Temp fix
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      - name: 🚚 Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  deploy-web:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: [validate-web, test-web, e2e-test-web, build-web]
+    # only build/deploy branches on pushes
+    if: ${{ github.event_name == 'push' }}
+
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm package manager
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: ⚡️ Cache pnpm store
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📥 Download deps
+        run: pnpm install --prefer-offline
+
+      - name: 👀 Read app name
+        uses: SebRollen/toml-action@v1.0.2
+        id: read_toml
+        with:
+          file: 'apps/web/fly.toml'
+          # the field in the toml file to read. outputs the value to steps.read_toml.outputs.value
+          field: 'app'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+        # See here: https://github.com/superfly/flyctl-actions?tab=readme-ov-file#using-the-setup-flyctl-action
+      - name: 🎈 Setup Fly
+        uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+      - name: 🚀 Deploy Staging
+        if: ${{ github.ref == 'refs/heads/staging' }}
+        run:
+          flyctl deploy --build-arg COMMIT_SHA=${{ github.sha }} --build-arg
+          STORE_PATH=${{ env.STORE_PATH }} --build-arg PROJECT=web --app ${{
+          steps.read_toml.outputs.value }}-staging --config ./apps/web/fly.toml
+          --image registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
+          github.ref_name }}-${{ github.sha }} --build-secret
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          --build-secret SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+          --build-secret SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: 🚀 Deploy Production
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run:
+          flyctl deploy --build-arg COMMIT_SHA=${{ github.sha }} --build-arg
+          STORE_PATH=${{ env.STORE_PATH }} --build-arg PROJECT=web --app ${{
+          steps.read_toml.outputs.value }} --config ./apps/web/fly.toml --image
+          registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
+          github.ref_name }}-${{ github.sha }} --build-secret
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          --build-secret SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+          --build-secret SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

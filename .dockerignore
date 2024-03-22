@@ -1,0 +1,48 @@
+# docker
+Dockerfile*
+docker-compose*
+
+# git
+.git
+.gitignore
+.github
+
+# package manager
+node_modules
+npm-debug.log
+package-lock.json
+yarn-error.log
+
+# misc
+.devcontainer
+.DS_Store
+.vscode
+app.pid
+*.pem
+
+# environment files
+.env*
+*.env
+
+# app
+build
+public/build
+dist
+# apps/web specific
+server-build
+
+
+# Include README.md and LICENSE.md, exlcude the rest
+*.md
+!README.md
+!LICENSE.md
+
+# development files
+*.log
+.turbo
+.vercel
+.cache
+.output
+cypress/screenshots
+cypress/videos
+coverage

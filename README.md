@@ -1,15 +1,3 @@
-# Turborepo starter
-
-This is an official starter Turborepo.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
 ## What's inside?
 
 This Turborepo includes the following packages/apps:
@@ -17,9 +5,11 @@ This Turborepo includes the following packages/apps:
 ### Apps and Packages
 
 - `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `web`: an [Epic-Stack Remix](https://www.epicweb.dev/epic-stack) app
+- `@repo/ui`: a stub React component library shared by both `web` and `docs`
+  applications
+- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next`
+  and `eslint-config-prettier`)
 - `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
@@ -37,9 +27,10 @@ This Turborepo has some additional tools already setup for you:
 To build all apps and packages, run the following command:
 
 ```
-cd my-turborepo
 pnpm build
 ```
+
+You should probably run `pnpm run prebuild` if necessary.
 
 ### Develop
 
@@ -50,20 +41,52 @@ cd my-turborepo
 pnpm dev
 ```
 
+### Run commands for a specific app or package
+
+Package or app name is the package.json "name"
+
+```bash
+pnpm run build --filter web
+```
+
+Run dev:
+
+```bash
+pnpm run dev --filter docs
+```
+
+## Deployment
+
+For monorepos, you'll probably want to handle deployments separately for each
+app. The common practice is to use Dockerfiles and the guiding principle is:
+
+1. Each app should be deployable independent of the monorepo. Avoid COPY files
+   from the root packages or other apps.
+2. The Dockerfile should always work in the context of the root workspace. This
+   helps with CI/CD where we run docker commands especially the docker build
+   context.
+
 ### Remote Caching
 
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+Turborepo can use a technique known as
+[Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to
+share cache artifacts across machines, enabling you to share build caches with
+your team and CI/CD pipelines.
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
+By default, Turborepo will cache locally. To enable Remote Caching you will need
+an account with Vercel. If you don't have an account you can
+[create one](https://vercel.com/signup), then enter the following commands:
 
 ```
 cd my-turborepo
 npx turbo login
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+This will authenticate the Turborepo CLI with your
+[Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+Next, you can link your Turborepo to your Remote Cache by running the following
+command from the root of your Turborepo:
 
 ```
 npx turbo link

@@ -1,54 +1,55 @@
-app = "web-0234"
+# See https://fly.io/docs/reference/configuration/
+
+app = "epic-stack-turborepo"
 primary_region = "sjc"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
 
-[experimental]
-allowed_public_ports = [ ]
-auto_rollback = true
-
+# https://fly.io/docs/litefs/getting-started-fly/#overview
 [mounts]
-source = "data"
-destination = "/data"
+    source = "litefs"
+    destination = "/var/lib/litefs"
 
 [[services]]
-internal_port = 8080
-processes = [ "app" ]
-protocol = "tcp"
-script_checks = [ ]
+    internal_port = 8080
+    processes = ["app"]
+    protocol = "tcp"
+    # for each external port you want to accept connections on, you need a services.ports section
+    [[services.ports]]
+        handlers = [ "http" ]
+        port = 80
+        force_https = true
 
-  [services.concurrency]
-  hard_limit = 100
-  soft_limit = 80
-  type = "requests"
+    [[services.ports]]
+        handlers = [ "tls", "http" ]
+        port = 443
 
-  [[services.ports]]
-  handlers = [ "http" ]
-  port = 80
-  force_https = true
+[services.concurrency]
+    hard_limit = 100
+    soft_limit = 80
+    #informs load balancing to measure by requests. this could also be "connections"
+    type = "requests"
 
-  [[services.ports]]
-  handlers = [ "tls", "http" ]
-  port = 443
+# When a service is running, Fly Proxy can check up on it by connecting to a port
+[[services.tcp_checks]]
+    grace_period = "1s"
+    interval = "15s"
+    restart_limit = 0
+    timeout = "2s"
 
-  [[services.tcp_checks]]
-  grace_period = "1s"
-  interval = "15s"
-  restart_limit = 0
-  timeout = "2s"
+# More thorough checks can be done with HTTP
+[[services.http_checks]]
+    interval = "10s"
+    grace_period = "5s"
+    method = "get"
+    path = "/resources/healthcheck"
+    protocol = "http"
+    timeout = "2s"
+    tls_skip_verify = false
+    [services.http_checks.headers]
 
-  [[services.http_checks]]
-  interval = "10s"
-  grace_period = "5s"
-  method = "get"
-  path = "/resources/healthcheck"
-  protocol = "http"
-  timeout = "2s"
-  tls_skip_verify = false
-  headers = { }
-
-  [[services.http_checks]]
+[[services.http_checks]]
     grace_period = "10s"
     interval = "30s"
     method = "GET"

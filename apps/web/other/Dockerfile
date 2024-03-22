@@ -1,53 +1,77 @@
-# This file is moved to the root directory before building the image
+# Always assume the context is the root of the project
+# In a monorepo, the context is the root of the monorepo
 
-# base node image
-FROM node:20-bookworm-slim as base
-
-# set for base and all layer that inherit from it
-ENV NODE_ENV production
-
-# Install openssl for Prisma
-RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates
-
-# Install all node_modules, including dev dependencies
-FROM base as deps
-
-WORKDIR /myapp
-
-ADD package.json package-lock.json .npmrc ./
-RUN npm install --include=dev
-
-# Setup production node_modules
-FROM base as production-deps
-
-WORKDIR /myapp
-
-COPY --from=deps /myapp/node_modules /myapp/node_modules
-ADD package.json package-lock.json .npmrc ./
-RUN npm prune --omit=dev
-
-# Build the app
-FROM base as build
-
+# 1. setup base. all layers inherit from this
+FROM node:20-alpine as base
+# From turborepo docs: https://turbo.build/repo/docs/handbook/deploying-with-docker
+RUN apk update
+RUN apk add --no-cache libc6-compat
+# (Optional: if using litefs): https://fly.io/docs/litefs/getting-started-docker/
+RUN apk add ca-certificates fuse3 sqlite
+# (Optional: if using prisma) Install openssl for Prisma
+RUN apk add openssl
+ARG STORE_PATH=~/.pnpm-store
+# Setup pnpm and turbo on the alpine base. These will be available in all layers that inherit from this
+RUN corepack enable pnpm
+# Enable `pnpm add --global` on Alpine Linux by setting
+# home location environment variable to a location already in $PATH
+# https://github.com/pnpm/pnpm/issues/784#issuecomment-1518582235
+ENV PNPM_HOME=/usr/local/bin
+RUN pnpm config set store-dir ${STORE_PATH}
+RUN pnpm install -g turbo
 ARG COMMIT_SHA
 ENV COMMIT_SHA=$COMMIT_SHA
 
-WORKDIR /myapp
+# 2. Prune projects. Since this is a monorepo, we need to decide which projects to include in the final image
+FROM base AS pruner
+ARG PROJECT
+WORKDIR /app
+COPY . .
+RUN turbo prune --scope=${PROJECT} --docker
 
-COPY --from=deps /myapp/node_modules /myapp/node_modules
 
-ADD prisma .
-RUN npx prisma generate
+# 3. A dependency layer containing only the lockfile and package.json's of the pruned project
+# Useful for caching as these files don't change often
+FROM base AS deps-base
+ARG PROJECT
+WORKDIR /app
+# Note: pruned json files also include npmrc from that project
+COPY --from=pruner /app/out/json/ .
+# Copy lockfile and package.json's of isolated subworkspace
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 
-ADD . .
+# 3.a Contains only production dependencies.
+# NOTE: The reason we dont use `pnpm prune --prod` is it does not support recursive
+# exection in a monorepo. See: https://pnpm.io/cli/prune
+FROM deps-base as production-deps
+WORKDIR /app
+COPY --from=pruner /app/out/full/ .
+RUN --mount=type=cache,id=pnpm,target=${STORE_PATH} pnpm install --prod --prefer-offline --frozen-lockfile
+# Note: This is only so that the generated prisma is included in node_modules of production
+RUN pnpm run prebuild --filter=${PROJECT}
 
-# Mount the secret and set it as an environment variable and run the build
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
-    export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
-    npm run build
 
-# Finally, build the production image with minimal footprint
-FROM base
+# 3.b Build the app. Contains the source code and the built app of the pruned project
+FROM deps-base as builder
+WORKDIR /app
+# Copy source code of isolated subworkspace
+COPY --from=pruner /app/out/full/ .
+RUN --mount=type=cache,id=pnpm,target=${STORE_PATH} pnpm install --prefer-offline --frozen-lockfile
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN)
+RUN --mount=type=secret,id=SENTRY_ORG export SENTRY_ORG=$(cat /run/secrets/SENTRY_ORG)
+RUN --mount=type=secret,id=SENTRY_PROJECT export SENTRY_PROJECT=$(cat /run/secrets/SENTRY_PROJECT)
+RUN pnpm run prebuild --filter=${PROJECT}
+RUN pnpm run build --filter=${PROJECT}
+
+# 4. Finally, build the production image with minimal footprint
+# In a monorepo, the guiding principle is that the final step:
+# a. Assume that it no longer has access to the source code of the entire monorepo.
+# With this assumption, it shouldn't use paths that are specific to the monorepo
+# nor copy anything from the root workspace.
+# b. It should only copy the necessary files from the pruned project 
+# and anything it needs from the previous layers
+# This makes it easy to move the pruned project to a different monorepo or to a different project entirely
+FROM base AS runner
 
 ENV FLY="true"
 ENV LITEFS_DIR="/litefs/data"
@@ -65,22 +89,27 @@ ENV PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK = "1"
 # add shortcut for connecting to database CLI
 RUN echo "#!/bin/sh\nset -x\nsqlite3 \$DATABASE_URL" > /usr/local/bin/database-cli && chmod +x /usr/local/bin/database-cli
 
-WORKDIR /myapp
+WORKDIR /app
 
-COPY --from=production-deps /myapp/node_modules /myapp/node_modules
-COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
-
-COPY --from=build /myapp/server-build /myapp/server-build
-COPY --from=build /myapp/build /myapp/build
-COPY --from=build /myapp/package.json /myapp/package.json
-COPY --from=build /myapp/prisma /myapp/prisma
-COPY --from=build /myapp/app/components/ui/icons /myapp/app/components/ui/icons
+COPY --from=production-deps /app/package.json ./package.json
+COPY --from=production-deps /app/node_modules ./node_modules
+COPY --from=production-deps /app/apps/web/package.json ./apps/web/package.json
+COPY --from=production-deps /app/apps/web/node_modules ./apps/web/node_modules
+# This is run by fly before releasing a deployment. Used by fly.toml and litefs.yml
+COPY --from=builder /app/apps/web/other ./apps/web/other
+COPY --from=builder /app/apps/web/index.js ./apps/web/index.js
+COPY --from=builder /app/apps/web/server-build ./apps/web/server-build
+COPY --from=builder /app/apps/web/build ./apps/web/build
+COPY --from=builder /app/apps/web/app/components/ui/icons ./apps/web/app/components/ui/icons
+# Optional, only if using Prisma
+COPY --from=builder /app/apps/web/prisma ./apps/web/prisma
 
 # prepare for litefs
 COPY --from=flyio/litefs:0.5.11 /usr/local/bin/litefs /usr/local/bin/litefs
-ADD other/litefs.yml /etc/litefs.yml
+COPY --from=builder /app/apps/web/other/litefs.yml /etc/litefs.yml
 RUN mkdir -p /data ${LITEFS_DIR}
 
-ADD . .
-
+# https://fly.io/docs/litefs/getting-started-docker/#running-litefs
+# Only if using litefs, see litefsy.yml for more detail. 
+# The yml contains the command to run the server
 CMD ["litefs", "mount"]

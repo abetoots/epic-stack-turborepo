@@ -1,17 +1,81 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local"],
+  "globalEnv": [
+    "NODE_ENV",
+    "LITEFS_DIR",
+    "DATABASE_PATH",
+    "DATABASE_URL",
+    "CACHE_DATABASE_PATH"
+  ],
+  "globalPassThroughEnv": [
+    "SESSION_SECRET",
+    "HONEYPOT_SECRET",
+    "INTERNAL_COMMAND_TOKEN",
+    "RESEND_API_KEY",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "GITHUB_TOKEN",
+    "FLY_REGION",
+    "FLY_APP_NAME",
+    "SENTRY_DSN",
+    "SENTRY_ORG",
+    "SENTRY_AUTH_TOKEN",
+    "SENTRY_PROJECT"
+  ],
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [
+        "dist/**",
+        "public/build/**",
+        "build/**",
+        "app/styles/tailwind.css",
+        ".cache"
+      ]
+    },
+    "db:seed": {
+      "outputs": [],
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "prebuild": {
+      "outputs": []
+    },
+    "test:setup-ci": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "env": ["TESTING", "MOCKS"],
+      "passThroughEnv": ["REMIX_DEV_ORIGIN", "VITEST_POOL_ID", "PORT", "CI"],
+      "outputs": []
+    },
+    "test:e2e:setup-ci": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test:e2e:run": {
+      "env": ["TESTING", "MOCKS"],
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "passThroughEnv": [
+        "REMIX_DEV_ORIGIN",
+        "VITEST_POOL_ID",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "PORT",
+        "CI"
+      ]
+    },
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
   }
 }
