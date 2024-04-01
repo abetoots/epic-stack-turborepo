@@ -29,7 +29,7 @@ If first deployment:
    `docker build --file {PATH_TO_DOCKERFILE} --build-arg PROJECT={YOUR_APP_NAME} --build-arg STORE_PATH=$(pnpm store path) -t {FLY_APP_NAME}:main-$(git rev-parse HEAD) .`
 
    Launch without deploying using our local image:
-   `fly launch --dockerfile {PATH_TO_DOCKERFILE} --build-arg PROJECT={YOUR_APP_NAME} --build-arg STORE_PATH=$(pnpm store path) --name {FLY_APP_NAME}  --local-only --path {PATH_TO_DIR_CONTAINING_FLY_TOML} --image {FLY_APP_NAME}:main$(git rev-parse HEAD) --no-deploy`
+   `fly launch --dockerfile {PATH_TO_DOCKERFILE} --build-arg PROJECT={YOUR_APP_NAME} --build-arg STORE_PATH=$(pnpm store path) --name {FLY_APP_NAME}  --local-only --path {PATH_TO_DIR_CONTAINING_FLY_TOML} --image {FLY_APP_NAME}:main-$(git rev-parse HEAD) --no-deploy`
 
    Then do the same steps for staging, just change `main` in the commands above.
 
@@ -79,8 +79,8 @@ If first deployment:
    region, make sure you change the `primary_region` in fly.toml as well):
 
    ```sh
-   fly volumes create litefs --region sjc --size 2 --app [FLY_APP_NAME]
-   fly volumes create litefs --region sjc --size 2 --app [FLY_APP_NAME]-staging
+   fly volumes create litefs --region [REGION] --size 3 --app [FLY_APP_NAME]
+   fly volumes create litefs --region [REGION] --size 3 --app [FLY_APP_NAME]-staging
    ```
 
 7. Attach Consul:
