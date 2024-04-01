@@ -83,7 +83,7 @@ async function seed() {
 									length: faker.number.int({ min: 1, max: 3 }),
 								}).map(() => {
 									const imgNumber = faker.number.int({ min: 0, max: 9 })
-									return noteImages[imgNumber]
+									return noteImages[imgNumber]!
 								}),
 							},
 						})),

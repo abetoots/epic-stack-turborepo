@@ -6,7 +6,8 @@
     "LITEFS_DIR",
     "DATABASE_PATH",
     "DATABASE_URL",
-    "CACHE_DATABASE_PATH"
+    "CACHE_DATABASE_PATH",
+    "COMMIT_SHA"
   ],
   "globalPassThroughEnv": [
     "SESSION_SECRET",

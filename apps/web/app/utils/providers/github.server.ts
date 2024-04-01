@@ -30,7 +30,7 @@ export class GitHubProvider implements AuthProvider {
 				callbackURL: '/auth/github/callback',
 			},
 			async ({ profile }) => {
-				const email = profile.emails[0].value.trim().toLowerCase()
+				const email = profile.emails[0]!.value.trim().toLowerCase()
 				const username = profile.displayName
 				const imageUrl = profile.photos[0].value
 				return {

@@ -68,7 +68,7 @@ jobs:
         run: pnpm install --ignore-scripts --prefer-offline
 
       - name: 🖼 Build
-        run: pnpm run build
+        run: pnpm run prebuild && pnpm run build
 
       - name: 🔬 Lint and ʦ Typecheck
         #   https://stackoverflow.com/questions/3004811/how-do-you-run-multiple-programs-in-parallel-from-a-bash-script
@@ -349,9 +349,9 @@ jobs:
           steps.read_toml.outputs.value }}-staging --config ./apps/web/fly.toml
           --image registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
           github.ref_name }}-${{ github.sha }} --build-secret
-          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-          --build-secret SENTRY_ORG=${{ secrets.SENTRY_ORG }}
-          --build-secret SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --build-secret
+          SENTRY_ORG=${{ secrets.SENTRY_ORG }} --build-secret SENTRY_PROJECT=${{
+          secrets.SENTRY_PROJECT }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
@@ -363,8 +363,8 @@ jobs:
           steps.read_toml.outputs.value }} --config ./apps/web/fly.toml --image
           registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
           github.ref_name }}-${{ github.sha }} --build-secret
-          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-          --build-secret SENTRY_ORG=${{ secrets.SENTRY_ORG }}
-          --build-secret SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} --build-secret
+          SENTRY_ORG=${{ secrets.SENTRY_ORG }} --build-secret SENTRY_PROJECT=${{
+          secrets.SENTRY_PROJECT }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
