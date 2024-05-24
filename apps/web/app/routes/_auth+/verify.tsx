@@ -5,7 +5,7 @@ import { Form, useActionData, useSearchParams } from '@remix-run/react'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { ErrorList, Field } from '#app/components/forms.tsx'
+import { ErrorList, OTPField } from '#app/components/forms.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
@@ -45,7 +45,7 @@ export default function VerifyRoute() {
 	const checkEmail = (
 		<>
 			<h1 className="text-h1">Check your email</h1>
-			<p className="mt-3 text-body-md text-muted-foreground">
+			<p className="text-body-md text-muted-foreground mt-3">
 				We've sent you a code to verify your email address.
 			</p>
 		</>
@@ -58,7 +58,7 @@ export default function VerifyRoute() {
 		'2fa': (
 			<>
 				<h1 className="text-h1">Check your 2FA app</h1>
-				<p className="mt-3 text-body-md text-muted-foreground">
+				<p className="text-body-md text-muted-foreground mt-3">
 					Please enter your 2FA code to verify your identity.
 				</p>
 			</>
@@ -95,17 +95,19 @@ export default function VerifyRoute() {
 				<div className="flex w-full gap-2">
 					<Form method="POST" {...getFormProps(form)} className="flex-1">
 						<HoneypotInputs />
-						<Field
-							labelProps={{
-								htmlFor: fields[codeQueryParam].id,
-								children: 'Code',
-							}}
-							inputProps={{
-								...getInputProps(fields[codeQueryParam], { type: 'text' }),
-								autoComplete: 'one-time-code',
-							}}
-							errors={fields[codeQueryParam].errors}
-						/>
+						<div className="flex items-center justify-center">
+							<OTPField
+								labelProps={{
+									htmlFor: fields[codeQueryParam].id,
+									children: 'Code',
+								}}
+								inputProps={{
+									...getInputProps(fields[codeQueryParam], { type: 'text' }),
+									autoComplete: 'one-time-code',
+								}}
+								errors={fields[codeQueryParam].errors}
+							/>
+						</div>
 						<input
 							{...getInputProps(fields[typeQueryParam], { type: 'hidden' })}
 						/>
