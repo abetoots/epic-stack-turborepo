@@ -7,6 +7,7 @@ import {
 } from '@remix-run/node'
 import { RemixServer } from '@remix-run/react'
 import * as Sentry from '@sentry/remix'
+import chalk from 'chalk'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { getEnv, init } from './utils/env.server.ts'
@@ -97,9 +98,16 @@ export function handleError(
 	error: unknown,
 	{ request }: LoaderFunctionArgs | ActionFunctionArgs,
 ): void {
+	// Skip capturing if the request is aborted as Remix docs suggest
+	// Ref: https://remix.run/docs/en/main/file-conventions/entry.server#handleerror
+	if (request.signal.aborted) {
+		return
+	}
 	if (error instanceof Error) {
+		console.error(chalk.red(error.stack))
 		Sentry.captureRemixServerException(error, 'remix.server', request)
 	} else {
+		console.error(chalk.red(error))
 		Sentry.captureException(error)
 	}
 }
