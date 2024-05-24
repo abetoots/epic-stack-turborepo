@@ -51,3 +51,6 @@ yarn-error.log*
 
 # Easy way to create temporary files/folders that won't accidentally be added to git
 *.local.*
+
+# generated files
+/app/components/ui/icons
