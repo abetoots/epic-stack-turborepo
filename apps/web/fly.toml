@@ -5,6 +5,7 @@ primary_region = "sjc"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
+swap_size_mb = 512
 
 # https://fly.io/docs/litefs/getting-started-fly/#overview
 [mounts]

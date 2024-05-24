@@ -47,8 +47,6 @@ lease:
 # the last command to be long-running (e.g. an application server). When the
 # last command exits, LiteFS is shut down.
 exec:
-  - cmd: node ./apps/web/other/setup-swap.js
-
   - cmd: npx prisma migrate deploy --schema ./apps/web/prisma/schema.prisma
     if-candidate: true
 
