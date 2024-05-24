@@ -71,10 +71,8 @@ export default async function handleRequest(...args: DocRequestArgs) {
 				onShellError: (err: unknown) => {
 					reject(err)
 				},
-				onError: (error: unknown) => {
+				onError: () => {
 					didError = true
-
-					console.error(error)
 				},
 				nonce,
 			},
