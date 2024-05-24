@@ -4,7 +4,8 @@
   "sideEffects": false,
   "type": "module",
   "imports": {
-    "#*": "./*"
+    "#app/*": "./app/*",
+    "#tests/*": "./tests/*"
   },
   "scripts": {
     "prebuild": "pnpm exec prisma generate",
