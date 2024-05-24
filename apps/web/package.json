@@ -89,6 +89,7 @@
     "isbot": "^5.1.6",
     "litefs-js": "^1.1.2",
     "lru-cache": "^10.2.2",
+    "lucide-react": "^0.379.0",
     "morgan": "^1.10.0",
     "prisma": "^5.13.0",
     "qrcode": "^1.5.3",
