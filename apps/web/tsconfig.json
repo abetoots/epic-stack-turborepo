@@ -1,15 +1,14 @@
 {
-  "extends": "@repo/typescript-config/remix.json",
-  "include": ["**/*.ts", "**/*.tsx"],
-  "compilerOptions": {
-    "paths": {
-      "#app/*": ["./app/*"],
-      "#tests/*": ["./tests/*"],
-      "@/icon-name": [
-        "./app/components/ui/icons/name.d.ts",
-        "./types/icon-name.d.ts"
-      ]
-    }
-  },
-  "exclude": ["node_modules"]
+	"include": ["**/*.ts", "**/*.tsx"],
+	"extends": ["@epic-web/config/typescript"],
+	"compilerOptions": {
+		"paths": {
+			"#app/*": ["./app/*"],
+			"#tests/*": ["./tests/*"],
+			"@/icon-name": [
+				"./app/components/ui/icons/name.d.ts",
+				"./types/icon-name.d.ts"
+			]
+		}
+	}
 }

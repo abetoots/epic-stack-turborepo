@@ -25,8 +25,8 @@ export function ErrorList({
 	if (!errorsToRender?.length) return null
 	return (
 		<ul id={id} className="flex flex-col gap-1">
-			{errorsToRender.map(e => (
-				<li key={e} className="text-foreground-destructive text-[10px]">
+			{errorsToRender.map((e) => (
+				<li key={e} className="text-[10px] text-foreground-destructive">
 					{e}
 				</li>
 			))}
@@ -174,15 +174,15 @@ export function CheckboxField({
 					aria-invalid={errorId ? true : undefined}
 					aria-describedby={errorId}
 					checked={input.value === checkedValue}
-					onCheckedChange={state => {
+					onCheckedChange={(state) => {
 						input.change(state.valueOf() ? checkedValue : '')
 						buttonProps.onCheckedChange?.(state)
 					}}
-					onFocus={event => {
+					onFocus={(event) => {
 						input.focus()
 						buttonProps.onFocus?.(event)
 					}}
-					onBlur={event => {
+					onBlur={(event) => {
 						input.blur()
 						buttonProps.onBlur?.(event)
 					}}
@@ -191,7 +191,7 @@ export function CheckboxField({
 				<label
 					htmlFor={id}
 					{...labelProps}
-					className="text-body-xs text-muted-foreground self-center"
+					className="self-center text-body-xs text-muted-foreground"
 				/>
 			</div>
 			<div className="px-4 pb-3 pt-1">

@@ -24,7 +24,7 @@ const createRequestHandler =
 const viteDevServer =
 	MODE === 'production'
 		? undefined
-		: await import('vite').then(vite =>
+		: await import('vite').then((vite) =>
 				vite.createServer({
 					server: { middlewareMode: true },
 				}),
@@ -90,7 +90,7 @@ app.get(['/img/*', '/favicons/*'], (_req, res) => {
 	return res.status(404).send('Not found')
 })
 
-morgan.token('url', req => decodeURIComponent(req.url ?? ''))
+morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
 app.use(
 	morgan('tiny', {
 		skip: (req, res) =>
@@ -180,7 +180,7 @@ app.use((req, res, next) => {
 		'/resources/verify',
 	]
 	if (req.method !== 'GET' && req.method !== 'HEAD') {
-		if (strongPaths.some(p => req.path.includes(p))) {
+		if (strongPaths.some((p) => req.path.includes(p))) {
 			return strongestRateLimit(req, res, next)
 		}
 		return strongRateLimit(req, res, next)
@@ -261,6 +261,6 @@ ${chalk.bold('Press Ctrl+C to stop')}
 
 closeWithGrace(async () => {
 	await new Promise((resolve, reject) => {
-		server.close(e => (e ? reject(e) : resolve('ok')))
+		server.close((e) => (e ? reject(e) : resolve('ok')))
 	})
 })

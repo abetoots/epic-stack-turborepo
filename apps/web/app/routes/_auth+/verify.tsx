@@ -45,7 +45,7 @@ export default function VerifyRoute() {
 	const checkEmail = (
 		<>
 			<h1 className="text-h1">Check your email</h1>
-			<p className="text-body-md text-muted-foreground mt-3">
+			<p className="mt-3 text-body-md text-muted-foreground">
 				We've sent you a code to verify your email address.
 			</p>
 		</>
@@ -58,7 +58,7 @@ export default function VerifyRoute() {
 		'2fa': (
 			<>
 				<h1 className="text-h1">Check your 2FA app</h1>
-				<p className="text-body-md text-muted-foreground mt-3">
+				<p className="mt-3 text-body-md text-muted-foreground">
 					Please enter your 2FA code to verify your identity.
 				</p>
 			</>

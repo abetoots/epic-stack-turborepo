@@ -17,5 +17,5 @@ the live database by running `fly ssh console -C database-cli`.
 Change all `npm run prisma:studio` commands to
 `npm run prisma:studio --prefix apps/{YOUR_APP_NAME}`.
 
-Add `--schema ./{PATH_TO_SCHEMA}` to all `npx prisma migrate`
-commands mentioned in doc.
+Add `--schema ./{PATH_TO_SCHEMA}` to all `npx prisma migrate` commands mentioned
+in doc.
