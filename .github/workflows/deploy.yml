@@ -28,7 +28,7 @@ jobs:
   # Github doc: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#comparing-artifacts-and-dependency-caching
 
   # If you only need to cache dependencies for a package manager,
-  # use their respective `actions/setup-*` actions. See the cache example with actions/setup-node@v3 below.
+  # use their respective `actions/setup-*` actions. See the cache example with actions/setup-node@v4 below.
   # See: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#comparing-artifacts-and-dependency-caching
   # See: https://github.com/actions/setup-node?tab=readme-ov-file#caching-global-packages-data
 
@@ -40,13 +40,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install pnpm package manager
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
@@ -56,7 +56,7 @@ jobs:
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
         #  https://github.com/pnpm/action-setup#use-cache-to-reduce-installation-time
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: ⚡️ Cache pnpm store
         with:
           path: ${{ env.STORE_PATH }}
@@ -84,12 +84,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install pnpm package manager
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
@@ -99,7 +99,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: ⚡️ Cache pnpm store
         with:
           path: ${{ env.STORE_PATH }}
@@ -134,12 +134,12 @@ jobs:
         run: cp ./apps/web/.env.example ./apps/web/.env
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install pnpm package manager
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
@@ -149,7 +149,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: ⚡️ Cache pnpm store
         with:
           path: ${{ env.STORE_PATH }}
@@ -165,7 +165,7 @@ jobs:
 
       - name: 🏦 Cache Database
         id: db-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: apps/web/prisma/data.db
           key:
@@ -206,12 +206,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install pnpm package manager
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
@@ -221,7 +221,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: ⚡️ Cache pnpm store
         with:
           path: ${{ env.STORE_PATH }}
@@ -244,7 +244,7 @@ jobs:
 
       # Setup cache
       - name: ⚡️ Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -300,12 +300,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: ⎔ Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install pnpm package manager
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
@@ -315,7 +315,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: ⚡️ Cache pnpm store
         with:
           path: ${{ env.STORE_PATH }}
