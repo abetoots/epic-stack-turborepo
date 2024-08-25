@@ -92,7 +92,7 @@ importers:
         version: 1.1.2
       '@nasa-gcn/remix-seo':
         specifier: ^2.0.0
-        version: 2.0.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.1)
+        version: 2.0.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.2)
       '@paralleldrive/cuid2':
         specifier: ^2.2.2
         version: 2.2.2
@@ -230,13 +230,10 @@ importers:
         version: 18.3.1(react@18.3.1)
       remix-auth:
         specifier: ^3.6.0
-        version: 3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.1)
-      remix-auth-form:
-        specifier: ^1.5.0
-        version: 1.5.0(@remix-run/server-runtime@2.9.1)(remix-auth@3.6.0)
+        version: 3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.2)
       remix-auth-github:
         specifier: ^1.7.0
-        version: 1.7.0(@remix-run/server-runtime@2.9.1)(remix-auth@3.6.0)
+        version: 1.7.0(@remix-run/server-runtime@2.9.2)(remix-auth@3.6.0)
       remix-utils:
         specifier: ^7.6.0
         version: 7.6.0(@remix-run/node@2.9.2)(@remix-run/react@2.9.2)(crypto-js@4.2.0)(intl-parse-accept-language@1.0.0)(react@18.3.1)(zod@3.23.8)
@@ -357,7 +354,7 @@ importers:
         version: 1.6.0(vitest@1.6.0)
       autoprefixer:
         specifier: ^10.4.19
-        version: 10.4.19(postcss@8.4.38)
+        version: 10.4.19(postcss@8.4.41)
       enforce-unique:
         specifier: ^1.3.0
         version: 1.3.0
@@ -2313,14 +2310,14 @@ packages:
       strict-event-emitter: 0.5.1
     dev: true
 
-  /@nasa-gcn/remix-seo@2.0.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.1):
+  /@nasa-gcn/remix-seo@2.0.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.2):
     resolution: {integrity: sha512-jawoxrjMMbFGgj20d61KblrQNkSFcW2yP7vWWQn2a+eK2J8uYYbw99j2GD7A4XbpQUxy7dg0yvRVsYYJ5uZnLQ==}
     peerDependencies:
       '@remix-run/react': ^1.0.0 || ^2.0.0
       '@remix-run/server-runtime': ^1.0.0 || ^2.0.0
     dependencies:
       '@remix-run/react': 2.9.2(react-dom@18.3.1)(react@18.3.1)(typescript@5.4.5)
-      '@remix-run/server-runtime': 2.9.1(typescript@5.4.5)
+      '@remix-run/server-runtime': 2.9.2(typescript@5.4.5)
       lodash: 4.17.21
     dev: false
 
@@ -3950,25 +3947,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - typescript
-
-  /@remix-run/server-runtime@2.9.1(typescript@5.4.5):
-    resolution: {integrity: sha512-6rRPiR+eMdTPkDojlYiZohVzXkD3+3X55ZvD78axMVocwGcDFFllpmgH9NSR2RKHW9eZDZUfKvNCwd/i9W6Xog==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      typescript: ^5.1.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@remix-run/router': 1.16.0
-      '@types/cookie': 0.6.0
-      '@web3-storage/multipart-parser': 1.0.0
-      cookie: 0.6.0
-      set-cookie-parser: 2.6.0
-      source-map: 0.7.4
-      turbo-stream: 2.0.1
-      typescript: 5.4.5
-    dev: false
 
   /@remix-run/server-runtime@2.9.2(typescript@5.4.5):
     resolution: {integrity: sha512-dX37FEeMVVg7KUbpRhX4hD0nUY0Sscz/qAjU4lYCdd6IzwJGariTmz+bQTXKCjploZuXj09OQZHSOS/ydkUVDA==}
@@ -6135,7 +6113,7 @@ packages:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
     dev: true
 
-  /autoprefixer@10.4.19(postcss@8.4.38):
+  /autoprefixer@10.4.19(postcss@8.4.41):
     resolution: {integrity: sha512-BaENR2+zBZ8xXhM4pUaKUxlVdxZ0EZhjvbopwnXmxRUfqDmwSpC2lAi/QXvx7NRdPCo1WKEcEF6mV64si1z4Ew==}
     engines: {node: ^10 || ^12 || >=14}
     hasBin: true
@@ -6147,7 +6125,7 @@ packages:
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.0.0
-      postcss: 8.4.38
+      postcss: 8.4.41
       postcss-value-parser: 4.2.0
     dev: true
 
@@ -12483,51 +12461,41 @@ packages:
       mdast-util-to-hast: 12.3.0
       unified: 10.1.2
 
-  /remix-auth-form@1.5.0(@remix-run/server-runtime@2.9.1)(remix-auth@3.6.0):
-    resolution: {integrity: sha512-xWM7T41vi4ZsIxL3f8gz/D6g2mxrnYF7LnG+rG3VqwHh6l13xCoKLraxzWRdbKMVKKQCMISKZRXAeJh9/PQwBA==}
-    peerDependencies:
-      '@remix-run/server-runtime': ^1.0.0 || ^2.0.0
-      remix-auth: ^3.6.0
-    dependencies:
-      '@remix-run/server-runtime': 2.9.1(typescript@5.4.5)
-      remix-auth: 3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.1)
-    dev: false
-
-  /remix-auth-github@1.7.0(@remix-run/server-runtime@2.9.1)(remix-auth@3.6.0):
+  /remix-auth-github@1.7.0(@remix-run/server-runtime@2.9.2)(remix-auth@3.6.0):
     resolution: {integrity: sha512-xuy/DW44y/eWU+vUsf9NlQUtLhayMZEJszgaVr1txwjA0OzpPee5qNxPQ9RBg8WdnY3pMWck5m070MW5Jt7nxg==}
     peerDependencies:
       '@remix-run/server-runtime': ^1.0.0 || ^2.0.0
       remix-auth: ^3.4.0
     dependencies:
-      '@remix-run/server-runtime': 2.9.1(typescript@5.4.5)
-      remix-auth: 3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.1)
-      remix-auth-oauth2: 1.11.2(@remix-run/server-runtime@2.9.1)(remix-auth@3.6.0)
+      '@remix-run/server-runtime': 2.9.2(typescript@5.4.5)
+      remix-auth: 3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.2)
+      remix-auth-oauth2: 1.11.2(@remix-run/server-runtime@2.9.2)(remix-auth@3.6.0)
     transitivePeerDependencies:
       - supports-color
     dev: false
 
-  /remix-auth-oauth2@1.11.2(@remix-run/server-runtime@2.9.1)(remix-auth@3.6.0):
+  /remix-auth-oauth2@1.11.2(@remix-run/server-runtime@2.9.2)(remix-auth@3.6.0):
     resolution: {integrity: sha512-5ORP+LMi5CVCA/Wb8Z+FCAJ73Uiy4uyjEzhlVwNBfdAkPOnfxzoi+q/pY/CrueYv3OniCXRM35ZYqkVi3G1UPw==}
     peerDependencies:
       '@remix-run/server-runtime': ^1.0.0 || ^2.0.0
       remix-auth: ^3.6.0
     dependencies:
-      '@remix-run/server-runtime': 2.9.1(typescript@5.4.5)
+      '@remix-run/server-runtime': 2.9.2(typescript@5.4.5)
       debug: 4.3.4
-      remix-auth: 3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.1)
+      remix-auth: 3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.2)
       uuid: 9.0.1
     transitivePeerDependencies:
       - supports-color
     dev: false
 
-  /remix-auth@3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.1):
+  /remix-auth@3.6.0(@remix-run/react@2.9.2)(@remix-run/server-runtime@2.9.2):
     resolution: {integrity: sha512-mxlzLYi+/GKQSaXIqIw15dxAT1wm+93REAeDIft2unrKDYnjaGhhpapyPhdbALln86wt9lNAk21znfRss3fG7Q==}
     peerDependencies:
       '@remix-run/react': ^1.0.0 || ^2.0.0
       '@remix-run/server-runtime': ^1.0.0 || ^2.0.0
     dependencies:
       '@remix-run/react': 2.9.2(react-dom@18.3.1)(react@18.3.1)(typescript@5.4.5)
-      '@remix-run/server-runtime': 2.9.1(typescript@5.4.5)
+      '@remix-run/server-runtime': 2.9.2(typescript@5.4.5)
       uuid: 8.3.2
     dev: false
 
