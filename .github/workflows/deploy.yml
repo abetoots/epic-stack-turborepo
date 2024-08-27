@@ -90,7 +90,6 @@ jobs:
       - name: Install pnpm package manager
         uses: pnpm/action-setup@v4
         with:
-          version: 8
           run_install: false
 
       - name: Get pnpm store directory
@@ -140,7 +139,6 @@ jobs:
       - name: Install pnpm package manager
         uses: pnpm/action-setup@v4
         with:
-          version: 8
           run_install: false
 
       - name: Get pnpm store directory
@@ -210,7 +208,6 @@ jobs:
       - name: Install pnpm package manager
         uses: pnpm/action-setup@v4
         with:
-          version: 8
           run_install: false
 
       - name: Get pnpm store directory
@@ -303,7 +300,6 @@ jobs:
       - name: Install pnpm package manager
         uses: pnpm/action-setup@v4
         with:
-          version: 8
           run_install: false
 
       - name: Get pnpm store directory
