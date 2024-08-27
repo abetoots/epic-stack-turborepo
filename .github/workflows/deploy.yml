@@ -42,7 +42,6 @@ jobs:
       - name: Install pnpm package manager
         uses: pnpm/action-setup@v4
         with:
-          version: 8
           run_install: false
 
       - name: ⎔ Setup node
@@ -168,8 +167,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: apps/web/prisma/data.db
-          key:
-            db-cache-schema_${{ hashFiles('./apps/web/prisma/schema.prisma')
+          key: db-cache-schema_${{ hashFiles('./apps/web/prisma/schema.prisma')
             }}-migrations_${{
             hashFiles('./apps/web/prisma/migrations/*/migration.sql') }}
 
@@ -197,8 +195,7 @@ jobs:
   build-web:
     name: 🐳 Build
     # only build/deploy main and staging branch on pushes
-    if:
-      ${{ (github.ref == 'refs/heads/main' || github.ref ==
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref ==
       'refs/heads/staging') && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
@@ -236,8 +233,8 @@ jobs:
         uses: SebRollen/toml-action@v1.0.2
         id: read_toml
         with:
-          file: 'apps/web/fly.toml'
-          field: 'app'
+          file: "apps/web/fly.toml"
+          field: "app"
 
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -264,8 +261,7 @@ jobs:
           context: .
           file: apps/web/other/Dockerfile
           push: true
-          tags:
-            registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
+          tags: registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
             github.ref_name }}-${{ github.sha }}
           build-args: |
             COMMIT_SHA=${{ github.sha }}
@@ -330,9 +326,9 @@ jobs:
         uses: SebRollen/toml-action@v1.0.2
         id: read_toml
         with:
-          file: 'apps/web/fly.toml'
+          file: "apps/web/fly.toml"
           # the field in the toml file to read. outputs the value to steps.read_toml.outputs.value
-          field: 'app'
+          field: "app"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -343,8 +339,7 @@ jobs:
 
       - name: 🚀 Deploy Staging
         if: ${{ github.ref == 'refs/heads/staging' }}
-        run:
-          flyctl deploy --build-arg COMMIT_SHA=${{ github.sha }} --build-arg
+        run: flyctl deploy --build-arg COMMIT_SHA=${{ github.sha }} --build-arg
           STORE_PATH=${{ env.STORE_PATH }} --build-arg PROJECT=web --app ${{
           steps.read_toml.outputs.value }}-staging --config ./apps/web/fly.toml
           --image registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
@@ -357,8 +352,7 @@ jobs:
 
       - name: 🚀 Deploy Production
         if: ${{ github.ref == 'refs/heads/main' }}
-        run:
-          flyctl deploy --build-arg COMMIT_SHA=${{ github.sha }} --build-arg
+        run: flyctl deploy --build-arg COMMIT_SHA=${{ github.sha }} --build-arg
           STORE_PATH=${{ env.STORE_PATH }} --build-arg PROJECT=web --app ${{
           steps.read_toml.outputs.value }} --config ./apps/web/fly.toml --image
           registry.fly.io/${{ steps.read_toml.outputs.value }}:${{
