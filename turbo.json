@@ -24,7 +24,7 @@
     "SENTRY_AUTH_TOKEN",
     "SENTRY_PROJECT"
   ],
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [
@@ -76,6 +76,9 @@
     },
     "typecheck": {
       "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "format": {
       "outputs": []
     }
   }

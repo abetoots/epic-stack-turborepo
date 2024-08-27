@@ -7,7 +7,8 @@
     "dev": "turbo dev",
     "db:seed": "turbo run db:seed --no-cache",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "turbo format --continue -- --ignore-path .gitignore",
+    "format:fix": "turbo format --continue -- --write",
     "test:setup-ci": "turbo run test:setup-ci",
     "test": "turbo run test",
     "test:e2e:setup-ci": "turbo run test:e2e:setup-ci",
@@ -17,9 +18,7 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.11",
-    "turbo": "latest"
+    "turbo": "^2.0.14"
   },
   "packageManager": "pnpm@8.9.0",
   "engines": {
