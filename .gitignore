@@ -32,6 +32,7 @@ out/
 build
 dist
 server-build
+.cache
 
 
 # Debug
