@@ -26,6 +26,9 @@ coverage
 # Vercel
 .vercel
 
+#Docker
+.docker
+
 # Build Outputs
 .next/
 out/
