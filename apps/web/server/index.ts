@@ -15,20 +15,21 @@ import morgan from 'morgan'
 installGlobals()
 
 const MODE = process.env.NODE_ENV ?? 'development'
+const IS_PROD = MODE === 'production'
+const IS_DEV = MODE === 'development'
+const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
 
-const createRequestHandler =
-	MODE === 'production'
-		? Sentry.wrapExpressCreateRequestHandler(_createRequestHandler)
-		: _createRequestHandler
+const createRequestHandler = IS_PROD
+	? Sentry.wrapExpressCreateRequestHandler(_createRequestHandler)
+	: _createRequestHandler
 
-const viteDevServer =
-	MODE === 'production'
-		? undefined
-		: await import('vite').then((vite) =>
-				vite.createServer({
-					server: { middlewareMode: true },
-				}),
-			)
+const viteDevServer = IS_PROD
+	? undefined
+	: await import('vite').then(vite =>
+			vite.createServer({
+				server: { middlewareMode: true },
+			}),
+		)
 
 const app = express()
 
@@ -87,7 +88,7 @@ app.get(['/img/*', '/favicons/*'], (_req, res) => {
 	return res.status(404).send('Not found')
 })
 
-morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
+morgan.token('url', req => decodeURIComponent(req.url ?? ''))
 app.use(
 	morgan('tiny', {
 		skip: (req, res) =>
@@ -140,7 +141,7 @@ app.use(
 // rate limiting because playwright tests are very fast and we don't want to
 // have to wait for the rate limit to reset between tests.
 const maxMultiple =
-	MODE !== 'production' || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
+	!IS_PROD || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
 const rateLimitDefault = {
 	windowMs: 60 * 1000,
 	max: 1000 * maxMultiple,
@@ -177,7 +178,7 @@ app.use((req, res, next) => {
 		'/resources/verify',
 	]
 	if (req.method !== 'GET' && req.method !== 'HEAD') {
-		if (strongPaths.some((p) => req.path.includes(p))) {
+		if (strongPaths.some(p => req.path.includes(p))) {
 			return strongestRateLimit(req, res, next)
 		}
 		return strongRateLimit(req, res, next)
@@ -202,6 +203,13 @@ async function getBuild() {
 	return build as unknown as ServerBuild
 }
 
+if (!ALLOW_INDEXING) {
+	app.use((_, res, next) => {
+		res.set('X-Robots-Tag', 'noindex, nofollow')
+		next()
+	})
+}
+
 app.all(
 	'*',
 	createRequestHandler({
@@ -210,8 +218,7 @@ app.all(
 			serverBuild: getBuild(),
 		}),
 		mode: MODE,
-		// @sentry/remix needs to be updated to handle the function signature
-		build: MODE === 'production' ? await getBuild() : getBuild,
+		build: getBuild,
 	}),
 )
 
@@ -219,32 +226,29 @@ const desiredPort = Number(process.env.PORT || 3000)
 const portToUse = await getPort({
 	port: portNumbers(desiredPort, desiredPort + 100),
 })
+const portAvailable = desiredPort === portToUse
+if (!portAvailable && !IS_DEV) {
+	console.log(`⚠️ Port ${desiredPort} is not available.`)
+	process.exit(1)
+}
 
 const server = app.listen(portToUse, () => {
-	const addy = server.address()
-	const portUsed =
-		desiredPort === portToUse
-			? desiredPort
-			: addy && typeof addy === 'object'
-				? addy.port
-				: 0
-
-	if (portUsed !== desiredPort) {
+	if (!portAvailable) {
 		console.warn(
 			chalk.yellow(
-				`⚠️  Port ${desiredPort} is not available, using ${portUsed} instead.`,
+				`⚠️  Port ${desiredPort} is not available, using ${portToUse} instead.`,
 			),
 		)
 	}
 	console.log(`🚀  We have liftoff!`)
-	const localUrl = `http://localhost:${portUsed}`
+	const localUrl = `http://localhost:${portToUse}`
 	let lanUrl: string | null = null
 	const localIp = ipAddress() ?? 'Unknown'
 	// Check if the address is a private ip
 	// https://en.wikipedia.org/wiki/Private_network#Private_IPv4_address_spaces
 	// https://github.com/facebook/create-react-app/blob/d960b9e38c062584ff6cfb1a70e1512509a966e7/packages/react-dev-utils/WebpackDevServerUtils.js#LL48C9-L54C10
 	if (/^10[.]|^172[.](1[6-9]|2[0-9]|3[0-1])[.]|^192[.]168[.]/.test(localIp)) {
-		lanUrl = `http://${localIp}:${portUsed}`
+		lanUrl = `http://${localIp}:${portToUse}`
 	}
 
 	console.log(
@@ -258,6 +262,6 @@ ${chalk.bold('Press Ctrl+C to stop')}
 
 closeWithGrace(async () => {
 	await new Promise((resolve, reject) => {
-		server.close((e) => (e ? reject(e) : resolve('ok')))
+		server.close(e => (e ? reject(e) : resolve('ok')))
 	})
 })
