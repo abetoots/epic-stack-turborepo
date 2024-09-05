@@ -9,6 +9,7 @@ export const BASE_DATABASE_PATH = path.join(
 
 export async function setup() {
 	const databaseExists = await fsExtra.pathExists(BASE_DATABASE_PATH)
+
 	if (databaseExists) {
 		const databaseLastModifiedAt = (await fsExtra.stat(BASE_DATABASE_PATH))
 			.mtime
@@ -22,7 +23,7 @@ export async function setup() {
 	}
 
 	await execaCommand(
-		'prisma migrate reset --force --skip-seed --skip-generate',
+		'npx prisma migrate reset --force --skip-seed --skip-generate',
 		{
 			stdio: 'inherit',
 			env: {

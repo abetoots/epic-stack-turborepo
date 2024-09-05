@@ -25,12 +25,14 @@ type GetOrInsertUserOptions = {
 	password?: string
 	email?: UserModel['email']
 }
+
 type User = {
 	id: string
 	email: string
 	username: string
 	name: string | null
 }
+
 async function getOrInsertUser({
 	id,
 	username,
@@ -60,6 +62,7 @@ async function getOrInsertUser({
 		})
 	}
 }
+
 export const test = base.extend<{
 	insertNewUser(options?: GetOrInsertUserOptions): Promise<User>
 	login(options?: GetOrInsertUserOptions): Promise<User>
@@ -86,6 +89,7 @@ export const test = base.extend<{
 				},
 				select: { id: true },
 			})
+
 			const authSession = await authSessionStorage.getSession()
 			authSession.set(sessionKey, session.id)
 			const cookieConfig = setCookieParser.parseString(

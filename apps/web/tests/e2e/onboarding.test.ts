@@ -247,7 +247,7 @@ test('shows help texts on entering invalid details on onboarding page after GitH
 	await page.getByRole('button', { name: /signup with github/i }).click()
 
 	await expect(page).toHaveURL(/\/onboarding\/github/)
-	expect(
+	await expect(
 		page.getByText(new RegExp(`welcome aboard ${ghUser.primaryEmail}`, 'i')),
 	).toBeVisible()
 
