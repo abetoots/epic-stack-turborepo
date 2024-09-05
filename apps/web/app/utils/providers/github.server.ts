@@ -23,6 +23,7 @@ const GitHubUserParseResult = z
 const shouldMock =
 	process.env.GITHUB_CLIENT_ID?.startsWith('MOCK_') ||
 	process.env.NODE_ENV === 'test'
+
 export class GitHubProvider implements AuthProvider {
 	getAuthStrategy() {
 		return new GitHubStrategy(
@@ -89,6 +90,7 @@ export class GitHubProvider implements AuthProvider {
 		)
 		const state = cuid()
 		connectionSession.set('oauth2:state', state)
+
 		// allows us to inject a code when running e2e tests,
 		// but falls back to a pre-defined 🐨 constant
 		const code =
